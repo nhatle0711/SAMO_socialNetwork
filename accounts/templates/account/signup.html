@@ -1,0 +1,58 @@
+{% load i18n %}
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% trans "Sign Up" %}</title>
+    <link rel="stylesheet" href="{% static 'css/auth.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Billabong&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <h1 class="auth-title">{% trans "SAMO" %}</h1>
+
+        <form method="post" action="{% url 'account_signup' %}">
+            {% csrf_token %}
+
+            {# Hiển thị lỗi non-field errors #}
+            {% if form.non_field_errors %}
+                <div class="form-errors">
+                    {% for error in form.non_field_errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {# Render từng field với placeholder, bỏ label #}
+            {% for field in form %}
+                <input type="{{ field.field.widget.input_type }}"
+                       name="{{ field.html_name }}"
+                       placeholder="{{ field.label }}"
+                       value="{{ field.value|default:'' }}">
+                {% if field.errors %}
+                    <div class="field-errors">
+                        {% for error in field.errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endfor %}
+
+            {{ redirect_field }}
+
+            <button type="submit" class="auth-btn">{% trans "Sign Up" %}</button>
+        </form>
+
+        {# Link Log In đưa vào auth-card #}
+        <div class="auth-footer">
+            <p>{% trans "Have an account?" %}
+               <a href="{% url 'account_login' %}">{% trans "Log In" %}</a>
+            </p>
+        </div>
+    </div>
+</div>
+</body>
+</html>

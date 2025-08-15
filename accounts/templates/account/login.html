@@ -1,0 +1,74 @@
+{% load i18n %}
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% trans "Sign In" %}</title>
+    <link rel="stylesheet" href="{% static 'css/auth.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Billabong&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <h1 class="auth-title">{% trans "SAMO" %}</h1>
+
+        <form method="post" action="{% url 'account_login' %}">
+            {% csrf_token %}
+
+            {# Hiển thị lỗi non-field (ví dụ: username/password sai) #}
+            {% if form.non_field_errors %}
+                <div class="form-errors">
+                    {% for error in form.non_field_errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {# Bỏ label, hiển thị placeholder #}
+            {% for field in form %}
+                {% if field.name != "remember" %}
+                    <input type="{{ field.field.widget.input_type }}"
+                           name="{{ field.html_name }}"
+                           placeholder="{{ field.label }}"
+                           value="{{ field.value|default:'' }}">
+                    {# Hiển thị lỗi field nếu có #}
+                    {% if field.errors %}
+                        <div class="field-errors">
+                            {% for error in field.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endif %}
+            {% endfor %}
+
+            {# Remember me checkbox #}
+            {% if form.remember %}
+                <div class="checkbox-wrapper">
+                    <input type="checkbox" id="{{ form.remember.id_for_label }}" name="{{ form.remember.html_name }}">
+                    <label for="{{ form.remember.id_for_label }}">{% trans "Remember me" %}</label>
+                </div>
+            {% endif %}
+
+            {{ redirect_field }}
+
+            <button type="submit" class="auth-btn">{% trans "Log In" %}</button>
+        </form>
+
+        {# Forgot password link #}
+        <div class="forgot-password">
+            <a href="{% url 'account_reset_password' %}">{% trans "Forgot password?" %}</a>
+        </div>
+
+        {# Link sign up đưa vào auth-card #}
+        <div class="auth-footer">
+            <p>{% trans "Don't have an account?" %}
+               <a href="{% url 'account_signup' %}">{% trans "Sign Up" %}</a>
+            </p>
+        </div>
+    </div>
+</div>
+</body>
+</html>

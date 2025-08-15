@@ -1,0 +1,123 @@
+/* Wrapper tổng thể */
+.auth-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #fafafa;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+/* Card form */
+.auth-card {
+    background-color: #fff;
+    border: 1px solid #dbdbdb;
+    padding: 40px 30px;
+    width: 350px;
+    max-width: 90%;
+    text-align: center;
+    border-radius: 10px; /* bo tròn card */
+    box-shadow: 0 0 10px rgba(0,0,0,0.05);
+}
+
+/* Tiêu đề form */
+.auth-title {
+    font-family: 'Billabong', cursive;
+    font-size: 48px;
+    font-weight: normal;
+    letter-spacing: 2px;
+    color: #262626;
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+/* Input mềm mại */
+.auth-card input[type="text"],
+.auth-card input[type="email"],
+.auth-card input[type="password"] {
+    width: 100%;
+    padding: 12px 14px;
+    margin: 8px 0;
+    border: 1px solid #dbdbdb;
+    border-radius: 8px; /* bo tròn input */
+    background-color: #fafafa;
+    font-size: 14px;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    box-sizing: border-box;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.auth-card input:focus {
+    border-color: #a8a8a8;
+    box-shadow: 0 0 2px rgba(0,0,0,0.1);
+}
+
+/* Checkbox mềm */
+.checkbox-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+.checkbox-wrapper input[type="checkbox"] {
+    margin: 0;
+}
+
+/* Button mềm mại */
+.auth-btn {
+    width: 100%;
+    padding: 10px 0;
+    margin-top: 12px;
+    background-color: #0095f6;
+    border: none;
+    border-radius: 8px; /* bo tròn button */
+    color: #fff;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.auth-btn:hover {
+    background-color: #007ac1;
+}
+
+/* Forgot password */
+.forgot-password {
+    margin-top: 10px;
+    text-align: right;
+    font-size: 13px;
+}
+
+.forgot-password a {
+    color: #0095f6;
+    text-decoration: none;
+}
+
+.forgot-password a:hover {
+    text-decoration: underline;
+}
+
+/* Footer signup */
+.auth-footer {
+    margin-top: 20px;
+}
+
+.auth-footer a {
+    color: #0095f6;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.auth-footer a:hover {
+    text-decoration: underline;
+}
+.form-errors p,
+.field-errors p {
+    color: #ed4956; /* đỏ kiểu Instagram */
+    font-size: 13px;
+    margin: 4px 0;
+}

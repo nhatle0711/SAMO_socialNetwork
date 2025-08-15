@@ -1,0 +1,46 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAMO</title>
+    <link rel="stylesheet" href="{% static 'samo/css/home.css' %}">
+</head>
+<body>
+    <div class="container">
+        <!-- Thanh điều hướng -->
+        <nav class="sidebar">
+            <div class="logo">SAMO</div>
+            <ul>
+                <li><a href="#"><span>🏠</span> Trang chủ</a></li>
+                <li><a href="#"><span>🔍</span> Tìm kiếm</a></li>
+                <li><a href="#"><span>💬</span> Tin nhắn</a></li>
+                <li><a href="#"><span>🔔</span> Thông báo</a></li>
+                <li><a href="#"><span>➕</span> Tạo</a></li>
+                <li><a href="#"><span>👤</span> Trang cá nhân</a></li>
+                <li><a href="accounts/logout/"><span>🚪</span> Đăng xuất</a></li>
+            </ul>
+        </nav>
+
+        <!-- Nội dung bài viết -->
+        <main class="feed">
+            {% for post in posts %}
+            <div class="post">
+                <div class="post-header">
+                    <img src="{{ post.user_avatar }}" class="avatar">
+                    <span class="username">{{ post.username }}</span>
+                </div>
+                <img src="{{ post.image }}" class="post-image">
+                <div class="post-actions">
+                    ❤️ 💬 📤
+                </div>
+                <div class="post-caption">
+                    <b>{{ post.username }}</b> {{ post.caption }}
+                </div>
+            </div>
+            {% endfor %}
+        </main>
+    </div>
+</body>
+</html>
