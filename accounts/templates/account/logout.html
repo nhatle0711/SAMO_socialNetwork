@@ -1,32 +1,27 @@
-{% extends "account/base_manage.html" %}
-{% load allauth i18n %}
+{% load i18n %}
 {% load static %}
 
-{% block head_title %}
-    {% trans "Sign Out" %}
-{% endblock head_title %}
-{% block extra_head %}
-    {{ block.super }}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% trans "Sign Out" %}</title>
     <link rel="stylesheet" href="{% static 'css/auth.css' %}">
-{% endblock %}
+</head>
+<body>
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <h1 class="auth-title">{% trans "Sign Out" %}</h1>
+        <p class="auth-text">{% trans "Are you sure you want to sign out?" %}</p>
 
-{% block content %}
-    {% element h1 %}
-        {% trans "Sign Out" %}
-    {% endelement %}
-    {% element p %}
-        {% trans 'Are you sure you want to sign out?' %}
-    {% endelement %}
-    {% url 'account_logout' as action_url %}
-    {% element form method="post" action=action_url no_visible_fields=True %}
-        {% slot body %}
+        <form method="post" action="{% url 'account_logout' %}">
             {% csrf_token %}
             {{ redirect_field }}
-        {% endslot %}
-        {% slot actions %}
-            {% element button type="submit" %}
-                {% trans 'Sign Out' %}
-            {% endelement %}
-        {% endslot %}
-    {% endelement %}
-{% endblock content %}
+            <button type="submit" class="auth-button">
+                {% trans "Sign Out" %}
+            </button>
+        </form>
+    </div>
+</div>
+</body>
+</html>

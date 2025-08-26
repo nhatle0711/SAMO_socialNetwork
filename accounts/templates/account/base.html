@@ -1,0 +1,79 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAMO - Mạng xã hội</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+
+
+</head>
+<body>
+    <div class="container">
+        <!-- Thanh điều hướng -->
+        <nav class="sidebar">
+            <div class="logo">
+                <i class="fas fa-feather-alt"></i>
+                <span>SAMO</span>
+            </div>
+            <ul class="nav-links">
+                <li>
+                    <a href="{% url 'home' %}" class="nav-link">
+                        <i class="fas fa-home"></i>
+                        <span class="nav-text">Trang chủ</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-search"></i>
+                        <span class="nav-text">Tìm kiếm</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-envelope"></i>
+                        <span class="nav-text">Tin nhắn</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-bell"></i>
+                        <span class="nav-text">Thông báo</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'create_post' %}" class="nav-link">
+                        <i class="fas fa-plus-square"></i>
+                        <span class="nav-text">Tạo</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'profile' user.username %}" class="nav-link">
+                        <i class="fas fa-user"></i>
+                        <span class="nav-text">Trang cá nhân</span>
+                    </a>
+                </li>
+            </ul>
+            <div class="logout-section">
+                <a href="{% url 'account_logout' %}" class="nav-link logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span class="nav-text">Đăng xuất</span>
+                </a>
+            </div>
+        </nav>
+
+        <!-- Nội dung chính -->
+        <main class="main-content">
+            {% block content %}
+            {% endblock %}
+        </main>
+    </div>
+
+    <!-- Script chung -->
+    {% block scripts %}
+    {% endblock %}
+</body>
+</html>

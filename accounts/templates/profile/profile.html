@@ -1,0 +1,447 @@
+{% extends "account/base.html" %}
+{% load static %}
+
+{% block content %}
+<style>
+    /* Reset và base styles */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    .profile-container {
+        max-width: 935px;
+        margin: 0 auto;
+        padding: 30px 20px 60px;
+        display: flex;
+        flex-direction: column; /* QUAN TRỌNG: Đảm bảo các phần tử xếp theo chiều dọc */
+    }
+
+    /* Header */
+    .profile-header {
+        display: flex;
+        margin-bottom: 44px;
+        padding: 0 20px;
+        flex-direction: row; /* Giữ avatar và info trên cùng một hàng */
+        flex-wrap: wrap; /* Cho phép xuống dòng trên màn hình nhỏ */
+    }
+
+    .profile-avatar-wrapper {
+        flex: 0 0 auto;
+        display: flex;
+        justify-content: center;
+        margin-right: 30px;
+        margin-bottom: 20px;
+    }
+
+    .profile-avatar {
+        width: 150px;
+        height: 150px;
+        background-color: #9e9e9e;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 1px solid #dbdbdb;
+    }
+
+    .profile-info {
+        flex: 1;
+        min-width: 300px;
+        display: flex;
+        flex-direction: column; /* Đảm bảo các phần tử con xếp dọc */
+    }
+
+    .profile-top {
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
+        flex-wrap: wrap; /* Cho phép xuống dòng khi cần */
+    }
+
+    .profile-top h2 {
+        font-size: 28px;
+        font-weight: 300;
+        margin-right: 20px;
+        margin-bottom: 10px;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+
+    .edit-profile-btn, .message-btn {
+        padding: 6px 16px;
+        border: 1px solid #dbdbdb;
+        border-radius: 4px;
+        background: transparent;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+
+    .options-btn {
+        background: transparent;
+        border: none;
+        font-size: 20px;
+        cursor: pointer;
+        padding: 0 10px;
+    }
+
+    .profile-stats {
+        display: flex;
+        margin-bottom: 20px;
+        gap: 40px;
+        flex-wrap: wrap; /* Cho phép xuống dòng trên màn hình nhỏ */
+    }
+
+    .profile-stats span {
+        font-size: 16px;
+        white-space: nowrap;
+    }
+
+    .profile-stats b {
+        font-weight: 600;
+    }
+
+    .profile-bio {
+        font-size: 16px;
+    }
+
+    .profile-name {
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+
+    /* Tabs */
+    .profile-tabs {
+        display: flex;
+        justify-content: center;
+        border-top: 1px solid #dbdbdb;
+        margin-bottom: 0;
+        width: 100%;
+    }
+
+    .tab-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        text-transform: uppercase;
+        cursor: pointer;
+        color: #8e8e8e;
+        font-weight: 500;
+        padding: 15px 0;
+        margin: 0 30px;
+        border-top: 1px solid transparent;
+        margin-top: -1px;
+        background: none;
+        border: none;
+        white-space: nowrap;
+    }
+
+    .tab-item.active {
+        color: #262626;
+        border-top: 1px solid #262626;
+    }
+
+    .tab-item i {
+        font-size: 16px;
+    }
+
+    /* Posts grid */
+    .tab-content {
+        width: 100%;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column; /* Đảm bảo nội dung xếp dọc */
+    }
+
+    .post-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 28px;
+        margin-top: 0;
+        transition: opacity 0.3s ease;
+        width: 100%;
+    }
+
+    .post-item {
+        position: relative;
+        overflow: hidden;
+        aspect-ratio: 1 / 1;
+        background-color: #fafafa;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    .post-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .post-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.4);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .post-item:hover .post-overlay {
+        opacity: 1;
+    }
+
+    .post-stats {
+        display: flex;
+        gap: 20px;
+        color: white;
+        font-weight: 600;
+    }
+
+    .post-stats span {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    /* No posts */
+    .no-posts {
+        grid-column: 1 / -1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 100px 20px;
+        color: #8e8e8e;
+        text-align: center;
+        width: 100%;
+    }
+
+    .no-posts i {
+        font-size: 48px;
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+
+    .no-posts p {
+        font-size: 18px;
+        margin: 0;
+    }
+
+    /* Saved posts (hidden by default) */
+    #savedPosts {
+        display: none;
+        opacity: 0;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .profile-header {
+            flex-direction: column;
+            padding: 0;
+            align-items: center;
+            text-align: center;
+        }
+
+        .profile-avatar-wrapper {
+            margin-right: 0;
+            margin-bottom: 20px;
+        }
+
+        .profile-info {
+            padding-left: 0;
+            margin-top: 0;
+            align-items: center;
+        }
+
+        .profile-top {
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .profile-stats {
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .post-grid {
+            gap: 3px;
+        }
+
+        .profile-container {
+            padding: 0 0 60px;
+        }
+
+        .profile-tabs {
+            margin-top: 10px;
+        }
+
+        .tab-item {
+            margin: 0 10px;
+        }
+    }
+
+    /* Animation for tab switching */
+    .fade-in {
+        animation: fadeIn 0.5s forwards;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+</style>
+
+<div class="profile-container">
+    <!-- Header -->
+    <div class="profile-header">
+        <!-- Avatar -->
+        <div class="profile-avatar-wrapper">
+           <img src="{{ profile.avatar.url}}" alt="{{ profile.user.username }}" class="profile-avatar">
+        </div>
+
+        <!-- Info -->
+        <div class="profile-info">
+            <div class="profile-top">
+                <h2>{{ user.username }}</h2>
+                <div class="action-buttons">
+                    <button class="edit-profile-btn">Chỉnh sửa trang cá nhân</button>
+                    <button class="message-btn">Nhắn tin</button>
+                </div>
+                <button class="options-btn">⋯</button>
+            </div>
+
+            <div class="profile-stats">
+                <span><b>{{ posts_count }}</b> bài viết</span>
+                <span><b>{{ followers_count }}</b> người theo dõi</span>
+                <span><b>{{ following_count }}</b> đang theo dõi</span>
+            </div>
+
+            <div class="profile-bio">
+                <div class="profile-name">{{ user.get_full_name }}</div>
+                <p>✨ Chia sẻ những khoảnh khắc đẹp trong cuộc sống</p>
+                <p>📍 Hà Nội, Việt Nam</p>
+                <a href="#" style="color: #00376b;">www.example.com</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="profile-tabs">
+        <button class="tab-item active" data-tab="posts">
+            <i class="fas fa-table-cells"></i>
+            <span>Bài viết</span>
+        </button>
+        <button class="tab-item" data-tab="saved">
+            <i class="far fa-bookmark"></i>
+            <span>Đã lưu</span>
+        </button>
+    </div>
+
+    <!-- Tab content -->
+    <div class="tab-content">
+        <!-- Bài viết -->
+        <div id="posts" class="post-grid fade-in">
+            {% for post in posts %}
+            <div class="post-item">
+                <img src="{{ post.image.url }}" alt="Post image">
+                <div class="post-overlay">
+                    <div class="post-stats">
+                        <span class="likes"><i class="fas fa-heart"></i> {{ post.likes_count }}</span>
+                        <span class="comments"><i class="fas fa-comment"></i> {{ post.comments_count }}</span>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="no-posts">
+                <i class="fas fa-camera"></i>
+                <p>Chưa có bài viết nào</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Đã lưu -->
+        <div id="savedPosts" class="post-grid">
+            {% for saved_post in saved_posts %}
+            <div class="post-item">
+                <img src="{{ saved_post.image.url }}" alt="Saved image">
+                <div class="post-overlay">
+                    <div class="post-stats">
+                        <span class="likes"><i class="fas fa-heart"></i> {{ saved_post.likes_count }}</span>
+                        <span class="comments"><i class="fas fa-comment"></i> {{ saved_post.comments_count }}</span>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="no-posts">
+                <i class="far fa-bookmark"></i>
+                <p>Chưa có bài viết nào được lưu</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const tabItems = document.querySelectorAll('.tab-item');
+        const postsGrid = document.getElementById('posts');
+        const savedPostsGrid = document.getElementById('savedPosts');
+        
+        // Xử lý sự kiện click vào tab
+        tabItems.forEach(tab => {
+            tab.addEventListener('click', function() {
+                const targetTab = this.getAttribute('data-tab');
+                
+                // Cập nhật trạng thái active
+                tabItems.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Ẩn tất cả nội dung tab
+                postsGrid.style.display = 'none';
+                savedPostsGrid.style.display = 'none';
+                
+                // Hiển thị tab được chọn với hiệu ứng
+                setTimeout(() => {
+                    if (targetTab === 'posts') {
+                        postsGrid.style.display = 'grid';
+                        postsGrid.classList.remove('fade-in');
+                        void postsGrid.offsetWidth; // Trigger reflow
+                        postsGrid.classList.add('fade-in');
+                    } else if (targetTab === 'saved') {
+                        savedPostsGrid.style.display = 'grid';
+                        savedPostsGrid.classList.remove('fade-in');
+                        void savedPostsGrid.offsetWidth; // Trigger reflow
+                        savedPostsGrid.classList.add('fade-in');
+                    }
+                }, 50);
+            });
+        });
+        
+        // Thêm hiệu ứng hover cho các bài viết
+        const postItems = document.querySelectorAll('.post-item');
+        postItems.forEach(post => {
+            post.addEventListener('mouseenter', function() {
+                this.querySelector('.post-overlay').style.opacity = '1';
+            });
+            
+            post.addEventListener('mouseleave', function() {
+                this.querySelector('.post-overlay').style.opacity = '0';
+            });
+        });
+    });
+</script>
+{% endblock %}

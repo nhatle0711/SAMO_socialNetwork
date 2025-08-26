@@ -1,0 +1,14 @@
+{% extends "account/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="create-post">
+    <h2>Tạo bài viết mới</h2>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+
+        <button type="submit">Đăng bài</button>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="edit-profile-container">
+    <h2>Chỉnh sửa hồ sơ</h2>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="form-group">
+            <label>Ảnh đại diện hiện tại:</label><br>
+            <img src="{{ request.user.profile.avatar.url }}" class="avatar-preview">
+        </div>
+
+        <div class="form-group">
+            {{ form.avatar.label_tag }}
+            {{ form.avatar }}
+        </div>
+
+        <div class="form-group">
+            {{ form.bio.label_tag }}
+            {{ form.bio }}
+        </div>
+
+        <button type="submit" class="btn">Lưu thay đổi</button>
+    </form>
+</div>
+{% endblock %}
