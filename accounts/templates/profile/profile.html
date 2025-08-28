@@ -3,6 +3,35 @@
 
 {% block content %}
 <style>
+    .follow-btn {
+    padding: 6px 16px;
+    border: none;
+    border-radius: 4px;
+    background: #0095f6;
+    color: white;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.unfollow-btn {
+    padding: 6px 16px;
+    border: 1px solid #dbdbdb;
+    border-radius: 4px;
+    background: transparent;
+    color: #262626;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.follow-btn:hover {
+    background: #1877f2;
+}
+
+.unfollow-btn:hover {
+    background: #efefef;
+}
     /* Reset và base styles */
     * {
         margin: 0;
@@ -310,16 +339,29 @@
     <div class="profile-header">
         <!-- Avatar -->
         <div class="profile-avatar-wrapper">
-           <img src="{{ profile.avatar.url}}" alt="{{ profile.user.username }}" class="profile-avatar">
+           <img src="{{ profile_user.profile.avatar.url }}" alt="{{ profile_user.username }}" class="profile-avatar">
         </div>
 
         <!-- Info -->
         <div class="profile-info">
             <div class="profile-top">
-                <h2>{{ user.username }}</h2>
+                <h2>{{ profile_user.username }}</h2>
+               <!-- Trong template profile -->
                 <div class="action-buttons">
-                    <button class="edit-profile-btn">Chỉnh sửa trang cá nhân</button>
-                    <button class="message-btn">Nhắn tin</button>
+                    {% if user.username != profile_user.username %}
+                        {% if is_following %}
+                            <button class="unfollow-btn" onclick="followUser('{{ profile_user.username }}')">
+                                Đang theo dõi
+                            </button>
+                        {% else %}
+                            <button class="follow-btn" onclick="followUser('{{ profile_user.username }}')">
+                                Theo dõi
+                            </button>
+                        {% endif %}
+                        <button class="message-btn">Nhắn tin</button>
+                    {% else %}
+                        <button class="edit-profile-btn">Chỉnh sửa trang cá nhân</button>
+                    {% endif %}
                 </div>
                 <button class="options-btn">⋯</button>
             </div>
@@ -443,5 +485,54 @@
             });
         });
     });
+    function followUser(username) {
+    const csrftoken = getCookie('csrftoken');
+    const button = event.currentTarget;
+
+    fetch(`/follow/${username}/`, {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': csrftoken,
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'followed') {
+            button.textContent = 'Đang theo dõi';
+            button.classList.remove('follow-btn');
+            button.classList.add('unfollow-btn');
+        } else if (data.status === 'unfollowed') {
+            button.textContent = 'Theo dõi';
+            button.classList.remove('unfollow-btn');
+            button.classList.add('follow-btn');
+        }
+
+        // Cập nhật số lượng followers
+        const followersElement = document.querySelector('.profile-stats span:nth-child(2) b');
+        if (followersElement) {
+            followersElement.textContent = data.followers_count;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
+
+// Hàm lấy CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
 </script>
 {% endblock %}

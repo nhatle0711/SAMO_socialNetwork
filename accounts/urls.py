@@ -15,4 +15,5 @@ urlpatterns = [
     path('accounts/', include('allauth.urls')),
     path("profile/<str:username>/", views.profile_view, name="profile"),
     path("edit-profile/", views.edit_profile, name="edit_profile"),
+    path('follow/<str:username>/', views.follow_user, name='follow_user'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

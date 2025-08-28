@@ -1,6 +1,6 @@
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import User
-from .models import Profile, Post
+from .models import Profile, Post,Follow
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from .forms import PostForm,ProfileForm
@@ -12,11 +12,14 @@ from django.contrib import messages
 #region home
 @login_required
 def home(request):
-    # Lấy tất cả bài viết hoặc bài viết của những người dùng được theo dõi
-    posts = Post.objects.all().order_by('-created_at')
-
-    # Lấy các user gợi ý
-    suggested_users = User.objects.exclude(id=request.user.id)[:5]
+    # lấy list id những người mà user đang follow
+    following_ids = Follow.objects.filter(
+        follower=request.user
+    ).values_list('following_id', flat=True)
+    # Lấy user gợi ý: không phải mình + không nằm trong danh sách đã follow
+    suggested_users = User.objects.exclude(id=request.user.id).exclude(id__in=following_ids).exclude(is_superuser=True).exclude(is_staff=True)[:5]
+    # lấy post từ những người đó
+    posts = Post.objects.filter(user__id__in=following_ids).order_by('-created_at')
 
     context = {
         'posts': posts,
@@ -37,15 +40,30 @@ class CustomLogoutView(LogoutView):
 #endregion
 
 #region profile
+# views.py
+@login_required
 def profile_view(request, username):
-    user = get_object_or_404(User, username=username)
-    profile, created = Profile.objects.get_or_create(user=user)  # auto tạo nếu chưa có
-    posts = Post.objects.filter(user=user).order_by("-created_at")
+    profile_user = get_object_or_404(User, username=username)
+    posts = Post.objects.filter(user=profile_user).order_by('-created_at')
 
-    return render(request, "profile/profile.html", {
-        "profile": profile,
-        "posts": posts,
-    })
+    # Kiểm tra xem current user có đang follow profile_user không
+    is_following = False
+    if request.user.is_authenticated and request.user != profile_user:
+        is_following = Follow.objects.filter(
+            follower=request.user,
+            following=profile_user
+        ).exists()
+
+    context = {
+        'profile_user': profile_user,
+        'posts': posts,
+        'posts_count': posts.count(),
+        'followers_count': profile_user.followers.count(),
+        'following_count': profile_user.following.count(),
+        'is_following': is_following,
+    }
+
+    return render(request, 'profile/profile.html', context)
 @login_required
 def edit_profile(request):
     profile, created = Profile.objects.get_or_create(user=request.user)

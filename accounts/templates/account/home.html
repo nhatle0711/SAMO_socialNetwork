@@ -1,330 +1,10 @@
 {% extends "account/base.html" %}
 {% load static %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/home.css' %}">
+{% endblock %}
 {% block content %}
-<style>
-    /* CSS cho trang home */
-    .home-container {
-        display: flex;
-        max-width: 935px;
-        margin: 0 auto;
-        padding: 30px 20px 0;
-        gap: 20px;
-    }
-
-    .posts-container {
-        flex: 1;
-        max-width: 614px;
-    }
-
-    .post {
-        background: white;
-        border: 1px solid #dbdbdb;
-        border-radius: 8px;
-        margin-bottom: 24px;
-        overflow: hidden;
-    }
-
-    .post-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 14px 16px;
-    }
-
-    .post-user-info {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-
-    .avatar {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        background-color: #9e9e9e;
-        color: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        font-size: 14px;
-    }
-
-    .avatar.small {
-        width: 28px;
-        height: 28px;
-        font-size: 12px;
-    }
-
-    .username {
-        font-weight: 600;
-        color: #262626;
-    }
-
-    .post-time {
-        font-size: 12px;
-        color: #8e8e8e;
-    }
-
-    .options-btn {
-        background: none;
-        border: none;
-        font-size: 18px;
-        cursor: pointer;
-        color: #262626;
-    }
-
-    .post-image {
-        width: 100%;
-        max-height: 700px;
-        object-fit: cover;
-    }
-
-    .post-actions {
-        display: flex;
-        padding: 12px 16px;
-        gap: 16px;
-    }
-
-    .action-btn {
-        background: none;
-        border: none;
-        font-size: 24px;
-        cursor: pointer;
-        color: #262626;
-    }
-
-    .save-btn {
-        margin-left: auto;
-    }
-
-    .post-stats {
-        padding: 0 16px 12px;
-    }
-
-    .likes-count {
-        font-weight: 600;
-        font-size: 14px;
-    }
-
-    .post-caption {
-        padding: 0 16px 12px;
-        font-size: 14px;
-    }
-
-    .caption-text {
-        margin-left: 4px;
-    }
-
-    .comments {
-        padding: 0 16px 16px;
-        border-top: 1px solid #efefef;
-        padding-top: 12px;
-    }
-
-    .view-comments {
-        font-size: 14px;
-        color: #8e8e8e;
-        margin-bottom: 8px;
-        cursor: pointer;
-    }
-
-    .add-comment {
-        display: flex;
-        align-items: center;
-    }
-
-    .add-comment input {
-        flex: 1;
-        border: none;
-        outline: none;
-        padding: 8px 0;
-        font-size: 14px;
-    }
-
-    .comment-btn {
-        background: none;
-        border: none;
-        color: #0095f6;
-        font-weight: 600;
-        cursor: pointer;
-        opacity: 0.4;
-    }
-
-    .no-posts {
-        text-align: center;
-        padding: 60px 20px;
-        background: white;
-        border: 1px solid #dbdbdb;
-        border-radius: 8px;
-    }
-
-    .no-posts i {
-        font-size: 48px;
-        color: #8e8e8e;
-        margin-bottom: 16px;
-    }
-
-    .no-posts h3 {
-        font-size: 20px;
-        margin-bottom: 8px;
-        color: #262626;
-    }
-
-    .no-posts p {
-        color: #8e8e8e;
-    }
-
-    .sidebar-right {
-        width: 293px;
-        top: 88px;
-        height: fit-content;
-    }
-
-    .user-profile {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 24px;
-
-    background: white;             /* nền trắng */
-    border: 1px solid #dbdbdb;     /* viền xám nhạt */
-    border-radius: 8px;            /* bo góc */
-    padding: 16px;                 /* khoảng cách trong */
-}
-    .profile-info {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-
-    .full-name {
-        display: block;
-        font-size: 14px;
-        color: #8e8e8e;
-    }
-
-    .switch-btn {
-        background: none;
-        border: none;
-        color: #0095f6;
-        font-weight: 600;
-        cursor: pointer;
-        font-size: 12px;
-    }
-
-    .suggested-section {
-        background: white;
-        border: 1px solid #dbdbdb;
-        border-radius: 8px;
-        padding: 16px;
-        margin-bottom: 24px;
-    }
-
-    .section-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 16px;
-    }
-
-    .section-header span {
-        font-weight: 600;
-        color: #8e8e8e;
-    }
-
-    .see-all {
-        font-size: 12px;
-        font-weight: 600;
-        color: #262626;
-        text-decoration: none;
-    }
-
-    .suggested-user {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 16px;
-    }
-
-    .suggested-user:last-child {
-        margin-bottom: 0;
-    }
-
-    .user-info {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-
-    .suggestion-reason {
-        font-size: 12px;
-        color: #8e8e8e;
-    }
-
-    .follow-btn {
-        background: none;
-        border: none;
-        color: #0095f6;
-        font-weight: 600;
-        cursor: pointer;
-        font-size: 12px;
-    }
-
-    .no-suggestions {
-        text-align: center;
-        color: #8e8e8e;
-        font-size: 14px;
-        padding: 16px 0;
-    }
-
-    .heart-animation {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        font-size: 80px;
-        color: white;
-        opacity: 0;
-        pointer-events: none;
-        animation: heart-animate 1s forwards;
-    }
-
-    @keyframes heart-animate {
-        0% {
-            opacity: 0;
-            transform: translate(-50%, -50%) scale(0);
-        }
-        15% {
-            opacity: 0.9;
-            transform: translate(-50%, -50%) scale(1.2);
-        }
-        30% {
-            transform: translate(-50%, -50%) scale(0.95);
-        }
-        45%, 80% {
-            opacity: 0.9;
-            transform: translate(-50%, -50%) scale(1);
-        }
-        100% {
-            opacity: 0;
-            transform: translate(-50%, -50%) scale(0);
-        }
-    }
-
-    /* Responsive */
-    @media (max-width: 1000px) {
-        .sidebar-right {
-            display: none;
-        }
-
-        .home-container {
-            justify-content: center;
-        }
-    }
-</style>
-
 <div class="home-container">
     <!-- Posts -->
     <div class="posts-container">
@@ -335,7 +15,9 @@
                 <div class="post-user-info">
                 <img src="{{ post.user.profile.avatar.url}}" alt="{{ post.user.username }}" class="avatar">
                     <div>
-                        <span class="username">{{ post.user.username }}</span>
+                       <a href="{% url 'profile' post.user.username %}" class="username">
+                             {{ post.user.username }}
+                       </a>
                         <span class="post-time">{{ post.created_at|timesince }} trước</span>
                     </div>
                 </div>
@@ -372,18 +54,24 @@
 
             <!-- Caption -->
             <div class="post-caption">
-                <span class="username">{{ post.user.username }}</span>
+
+                <a href="{% url 'profile' post.user.username %}" class="username">
+                             {{ post.user.username }}
+                </a>
                 <span class="caption-text">{{ post.content }}</span>
             </div>
 
             <!-- Comments section -->
-            <div class="comments">
-                <div class="view-comments">Xem tất cả bình luận</div>
-                <div class="add-comment">
-                    <input type="text" placeholder="Thêm bình luận...">
-                    <button class="comment-btn">Đăng</button>
-                </div>
+             <div class="comments">
+            <div class="view-comments" onclick="toggleComments(this)">Xem tất cả bình luận</div>
+            <div class="comments-list" style="display: none;">
+                <!-- Các bình luận sẽ được thêm ở đây bằng JavaScript -->
             </div>
+            <div class="add-comment">
+                <input type="text" placeholder="Thêm bình luận..." class="comment-input">
+                <button class="comment-btn" onclick="postComment(this)">Đăng</button>
+            </div>
+        </div>
         </div>
         {% empty %}
         <div class="no-posts">
@@ -418,8 +106,11 @@
                     <div class="user-info">
                           <img src="{{ user.profile.avatar.url}}" alt="{{ post.user.username }}" class="avatar small">
                         <div>
-                            <span class="username">{{ user.username }}</span>
-                            <span class="suggestion-reason">Gợi ý cho bạn</span>
+                            <a href="{% url 'profile' user.username %}" class="username">
+                             {{ user.username }}
+                            </a>
+
+<!--                            <span class="suggestion-reason">Gợi ý cho bạn</span>-->
                         </div>
                     </div>
                     <button class="follow-btn">Theo dõi</button>
@@ -432,52 +123,8 @@
     </div>
 </div>
 
-<script>
-    function toggleLike(btn) {
-        const heartIcon = btn.querySelector('.heart-icon');
-        const likesCount = btn.closest('.post').querySelector('.likes-count');
+{% block scripts %}
+   <script src="{% static 'js/home.js' %}"></script>
+    {% endblock %}
 
-        if (btn.classList.contains('liked')) {
-            btn.classList.remove('liked');
-            heartIcon.innerHTML = '<i class="far fa-heart"></i>';
-            const currentLikes = parseInt(likesCount.textContent.split(' ')[0]);
-            likesCount.textContent = `${currentLikes - 1} lượt thích`;
-        } else {
-            btn.classList.add('liked');
-            heartIcon.innerHTML = '<i class="fas fa-heart" style="color: #ed4956"></i>';
-            const currentLikes = parseInt(likesCount.textContent.split(' ')[0]);
-            likesCount.textContent = `${currentLikes + 1} lượt thích`;
-        }
-    }
-
-    function toggleSave(btn) {
-        const saveIcon = btn.querySelector('.save-icon');
-
-        if (btn.classList.contains('saved')) {
-            btn.classList.remove('saved');
-            saveIcon.innerHTML = '<i class="far fa-bookmark"></i>';
-        } else {
-            btn.classList.add('saved');
-            saveIcon.innerHTML = '<i class="fas fa-bookmark" style="color: #262626"></i>';
-        }
-    }
-
-    // Double tap to like
-    document.querySelectorAll('.post-image').forEach(image => {
-        image.addEventListener('dblclick', function() {
-            const likeBtn = this.closest('.post').querySelector('.like-btn');
-            toggleLike(likeBtn);
-
-            // Show heart animation
-            const heart = document.createElement('div');
-            heart.innerHTML = '<i class="fas fa-heart"></i>';
-            heart.classList.add('heart-animation');
-            this.parentElement.appendChild(heart);
-
-            setTimeout(() => {
-                heart.remove();
-            }, 1000);
-        });
-    });
-</script>
 {% endblock %}
