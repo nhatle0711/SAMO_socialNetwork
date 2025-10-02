@@ -1,14 +1,53 @@
-{% extends "account/base.html" %}
-{% load static %}
+    {% extends "account/base.html" %}
+    {% load static %}
 
-{% block content %}
-<div class="create-post">
-    <h2>Tạo bài viết mới</h2>
-    <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        {{ form.as_p }}
+    {% block content %}
 
-        <button type="submit">Đăng bài</button>
-    </form>
-</div>
-{% endblock %}
+    {% endblock %}
+
+  {% block scripts %}
+      <script>
+    document.getElementById("create-post-form").addEventListener("click", function(e) {
+        e.preventDefault();
+
+        const form = e.target;
+        const formData = new FormData(form);
+
+        fetch("{% url 'create_post_api' %}", {
+            method: "POST",
+            body: formData,
+            headers: {
+                "X-CSRFToken": form.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+            } else {
+                // Hiển thị ngay bài viết mới lên đầu feed
+                const feed = document.getElementById("post-feed");
+                const postHtml = `
+                    <div class="post-item">
+                        <div class="post-header">
+                            <img src="${data.avatar}" class="avatar" alt="${data.username}">
+                            <span class="username">${data.username}</span>
+                            <span class="time">${data.created_at}</span>
+                        </div>
+                        <div class="post-content">
+                            <p>${data.content}</p>
+                            ${data.image ? `<img src="${data.image}" class="post-image">` : ""}
+                        </div>
+                    </div>
+                `;
+                feed.insertAdjacentHTML("afterbegin", postHtml);
+                form.reset();
+            }
+        })
+        .catch(err => {
+            console.error("Error:", err);
+            alert("Có lỗi xảy ra khi đăng bài");
+        });
+    });
+    </script>
+    {% endblock %}

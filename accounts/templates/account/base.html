@@ -9,7 +9,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
 
-     {% block extra_css %}{% endblock %}
+
+    {% block extra_css %}{% endblock %}
 </head>
 <body>
     <div class="container">
@@ -27,7 +28,7 @@
                     </a>
                 </li>
                 <li>
-                    <a href="#" class="nav-link">
+                    <a href="#" class="nav-link" id="search-link">
                         <i class="fas fa-search"></i>
                         <span class="nav-text">Tìm kiếm</span>
                     </a>
@@ -44,12 +45,13 @@
                         <span class="nav-text">Thông báo</span>
                     </a>
                 </li>
-                <li>
-                    <a href="{% url 'create_post' %}" class="nav-link">
-                        <i class="fas fa-plus-square"></i>
-                        <span class="nav-text">Tạo</span>
-                    </a>
+               <li>
+                  <a href="#" id="create-post-link" class="nav-link">
+                      <i class="fas fa-plus-square"></i>
+                      <span class="nav-text">Tạo</span>
+                  </a>
                 </li>
+
                 <li>
                     <a href="{% url 'profile' user.username %}" class="nav-link">
                         <i class="fas fa-user"></i>
@@ -72,7 +74,83 @@
         </main>
     </div>
 
+    <!-- Modal tìm kiếm -->
+    <div id="search-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Tìm kiếm</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="search-input-container">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="search-input" placeholder="Tìm kiếm người dùng...">
+                </div>
+                <div id="search-results" class="search-results">
+                    <p class="search-placeholder">Nhập từ khóa để tìm kiếm</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+          <div id="create-post-modal" class="modal">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h2>Tạo bài viết mới</h2>
+                  <span class="close">&times;</span>
+                </div>
+
+                <form id="create-post-form" method="post" enctype="multipart/form-data">
+                  {% csrf_token %}
+
+                <div class="upload-box">
+                      <input type="file" name="media" id="media" accept="image/*,video/*" required hidden multiple>
+                      <label for="media" class="upload-label">
+                        <i class="fas fa-image"></i>
+                        <i class="fas fa-video"></i>
+                        <p>Kéo & thả ảnh/video vào đây</p>
+                        <button type="button" class="select-btn">Chọn từ máy</button>
+                      </label>
+                      <div id="preview-container"></div> <!-- nơi preview -->
+                    </div>
+
+                                      <!-- Nội dung tuỳ chọn -->
+                  <textarea name="content" placeholder="Viết chú thích (không bắt buộc)..."></textarea>
+
+                  <button type="submit">Đăng</button>
+                </form>
+              </div>
+            </div>
+
+<!-- Modal xem bài viết -->
+<div id="pm-postModal" class="pm-modal" style="display:none;">
+<!--    <span class="pm-close-modal" onclick="closePostModal()">×</span>-->
+    <span class="pm-close-modal" onclick="closePostModal()">&times;</span>
+    <div class="pm-post-modal-content">
+        <!-- Bên trái: Media -->
+        <div class="pm-modal-left" id="pm-left">
+            <!-- Media sẽ load ở đây -->
+        </div>
+
+        <!-- Bên phải: Caption + Comments -->
+        <div class="pm-modal-right" id="pm-right">
+            <!-- Nội dung bài viết sẽ load ở đây -->
+        </div>
+    </div>
+</div>
+
+
+
+
+    <!-- Chỗ hiển thị danh sách bài viết -->
+    <div id="post-feed"></div>
     <!-- Script chung -->
+<script>
+  const CREATE_POST_URL = "{% url 'create_post_api' %}";
+  const CSRF_TOKEN = "{{ csrf_token }}";
+</script>
+<script src="{% static 'js/base.js' %}"></script>
+
     {% block scripts %}
     {% endblock %}
 </body>

@@ -1,60 +1,118 @@
+const carouselState = {};
 
-    function toggleLike(btn) {
-        const heartIcon = btn.querySelector('.heart-icon');
-        const likesCount = btn.closest('.post').querySelector('.likes-count');
+// ================= CAROUSEL =================
+function moveSlide(postId, direction) {
+    const track = document.querySelector(`.post-media-carousel[data-post-id="${postId}"] .carousel-track`);
+    const items = track.querySelectorAll(".carousel-item");
+    const dots = document.querySelectorAll(`#dots-${postId} .dot`);
 
-        if (btn.classList.contains('liked')) {
-            btn.classList.remove('liked');
-            heartIcon.innerHTML = '<i class="far fa-heart"></i>';
-            const currentLikes = parseInt(likesCount.textContent.split(' ')[0]);
-            likesCount.textContent = `${currentLikes - 1} lượt thích`;
-        } else {
+    if (!carouselState[postId]) carouselState[postId] = 0;
+    let newIndex = carouselState[postId] + direction;
+
+    if (newIndex < 0) newIndex = items.length - 1;
+    if (newIndex >= items.length) newIndex = 0;
+
+    carouselState[postId] = newIndex;
+    track.style.transform = `translateX(-${newIndex * 100}%)`;
+
+    if (dots.length) {
+        dots.forEach(dot => dot.classList.remove("active"));
+        dots[newIndex].classList.add("active");
+    }
+}
+
+function goToSlide(postId, index) {
+    const track = document.querySelector(`.post-media-carousel[data-post-id="${postId}"] .carousel-track`);
+    const dots = document.querySelectorAll(`#dots-${postId} .dot`);
+
+    carouselState[postId] = index;
+    track.style.transform = `translateX(-${index * 100}%)`;
+
+    if (dots.length) {
+        dots.forEach(dot => dot.classList.remove("active"));
+        dots[index].classList.add("active");
+    }
+}
+
+// ================= LIKE =================
+function toggleLike(btn) {
+    const postElement = btn.closest('.post');
+    const postId = postElement.dataset.postId;
+    const heartIcon = btn.querySelector('.heart-icon');
+    const likesCount = postElement.querySelector('.likes-count');
+
+    const liked = btn.classList.contains('liked');
+
+    fetch(`/posts/${postId}/like/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+        },
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.liked) {
             btn.classList.add('liked');
             heartIcon.innerHTML = '<i class="fas fa-heart" style="color: #ed4956"></i>';
-            const currentLikes = parseInt(likesCount.textContent.split(' ')[0]);
-            likesCount.textContent = `${currentLikes + 1} lượt thích`;
-        }
-    }
-
-    function toggleSave(btn) {
-        const saveIcon = btn.querySelector('.save-icon');
-
-        if (btn.classList.contains('saved')) {
-            btn.classList.remove('saved');
-            saveIcon.innerHTML = '<i class="far fa-bookmark"></i>';
         } else {
+            btn.classList.remove('liked');
+            heartIcon.innerHTML = '<i class="far fa-heart"></i>';
+        }
+        likesCount.textContent = `${data.likes_count} lượt thích`;
+    })
+    .catch(err => console.error("Like error:", err));
+}
+
+// Double tap like (ảnh / video)
+document.querySelectorAll('.post-image, .post-video').forEach(media => {
+    media.addEventListener('dblclick', function() {
+        const likeBtn = this.closest('.post').querySelector('.like-btn');
+        toggleLike(likeBtn);
+
+        const heart = document.createElement('div');
+        heart.innerHTML = '<i class="fas fa-heart"></i>';
+        heart.classList.add('heart-animation');
+        this.parentElement.appendChild(heart);
+        setTimeout(() => heart.remove(), 1000);
+    });
+});
+
+// ================= BOOKMARK =================
+function toggleSave(btn) {
+    const postElement = btn.closest('.post');
+    const postId = postElement.dataset.postId;
+    const saveIcon = btn.querySelector('.save-icon');
+
+    fetch(`/posts/${postId}/save/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+        },
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.saved) {
             btn.classList.add('saved');
             saveIcon.innerHTML = '<i class="fas fa-bookmark" style="color: #262626"></i>';
+        } else {
+            btn.classList.remove('saved');
+            saveIcon.innerHTML = '<i class="far fa-bookmark"></i>';
         }
-    }
+    })
+    .catch(err => console.error("Save error:", err));
+}
 
-    // Double tap to like
-    document.querySelectorAll('.post-image').forEach(image => {
-        image.addEventListener('dblclick', function() {
-            const likeBtn = this.closest('.post').querySelector('.like-btn');
-            toggleLike(likeBtn);
-
-            // Show heart animation
-            const heart = document.createElement('div');
-            heart.innerHTML = '<i class="fas fa-heart"></i>';
-            heart.classList.add('heart-animation');
-            this.parentElement.appendChild(heart);
-
-            setTimeout(() => {
-                heart.remove();
-            }, 1000);
-        });
-    });
-// Hàm để hiển thị/ẩn bình luận
+// ================= COMMENTS =================
 function toggleComments(element) {
     const commentsList = element.nextElementSibling;
+    const postId = element.closest('.post').dataset.postId;
+
     if (commentsList.style.display === 'none') {
         commentsList.style.display = 'block';
         element.textContent = 'Ẩn bình luận';
 
-        // Nếu chưa tải bình luận, thực hiện tải
-        if (commentsList.children.length === 0) {
-            loadComments(element);
+        if (!commentsList.dataset.loaded) {
+            loadComments(postId, commentsList);
         }
     } else {
         commentsList.style.display = 'none';
@@ -62,90 +120,89 @@ function toggleComments(element) {
     }
 }
 
-// Hàm tải bình luận (giả lập)
-function loadComments(element) {
-    const commentsList = element.nextElementSibling;
-    const postId = element.closest('.post').dataset.postId;
-
-    // Chỉ thêm nếu chưa load dữ liệu mock
-    if (!commentsList.dataset.loaded) {
-        const mockComments = [
-            {user: 'user1', text: 'Bài viết hay quá!', time: '2 giờ trước'},
-            {user: 'user2', text: 'Tôi rất thích nội dung này.', time: '1 giờ trước'}
-        ];
-
-        mockComments.forEach(comment => {
-            const commentElement = document.createElement('div');
-            commentElement.className = 'comment';
-            commentElement.innerHTML = `
-                <a href="/profile/${comment.user}" class="username">${comment.user}</a>
-                <span class="comment-text">${comment.text}</span>
-                <div class="comment-time">${comment.time}</div>
-            `;
-            commentsList.appendChild(commentElement);
-        });
-
-        // Đánh dấu là đã load
-        commentsList.dataset.loaded = "true";
-    }
+function loadComments(postId, commentsList) {
+    fetch(`/posts/${postId}/comments/`)
+        .then(res => res.json())
+        .then(data => {
+            commentsList.innerHTML = "";
+            data.comments.forEach(c => {
+                const commentElement = document.createElement('div');
+                commentElement.className = 'comment';
+                commentElement.innerHTML = `
+                    <a href="/profile/${c.user}" class="username">${c.user}</a>
+                    <span class="comment-text">${c.text}</span>
+                    <div class="comment-time">${c.time}</div>
+                `;
+                commentsList.appendChild(commentElement);
+            });
+            commentsList.dataset.loaded = "true";
+        })
+        .catch(err => console.error("Load comments error:", err));
 }
 
-// Hàm đăng bình luận mới
 function postComment(button) {
     const commentInput = button.previousElementSibling;
     const commentText = commentInput.value.trim();
-
-    if (commentText === '') {
-        return; // Không đăng bình luận rỗng
-    }
-
-    const commentsList = button.closest('.comments').querySelector('.comments-list');
     const postElement = button.closest('.post');
     const postId = postElement.dataset.postId;
+    const commentsList = postElement.querySelector('.comments-list');
 
-    // Tạo phần tử bình luận mới
-    const newComment = document.createElement('div');
-    newComment.className = 'comment';
-    newComment.innerHTML = `
-        <a href="/profile/current_user" class="username">Bạn</a>
-        <span class="comment-text">${commentText}</span>
-        <div class="comment-time">Vừa xong</div>
-    `;
+    if (commentText === '') return;
 
-    // Thêm bình luận vào đầu danh sách
-    commentsList.appendChild(newComment);
-
-    // Hiển thị danh sách bình luận nếu đang ẩn
-    if (commentsList.style.display === 'none') {
-        commentsList.style.display = 'block';
-    }
-
-    // Xóa nội dung ô nhập
-    commentInput.value = '';
-
-    // Trong thực tế, bạn sẽ gửi yêu cầu AJAX đến server ở đây
-    /*
-    fetch(`/posts/${postId}/comments`, {
+    fetch(`/posts/${postId}/comments/`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrftoken') // Nếu dùng Django CSRF
+            'X-CSRFToken': getCookie('csrftoken')
         },
-        body: JSON.stringify({
-            text: commentText
-        })
+        body: JSON.stringify({ text: commentText })
     })
-    .then(response => response.json())
+    .then(res => res.json())
     .then(data => {
-        // Cập nhật giao diện với dữ liệu từ server
+        const newComment = document.createElement('div');
+        newComment.className = 'comment';
+        newComment.innerHTML = `
+            <a href="/profile/${data.user}" class="username">${data.user}</a>
+             <span class="comment-text">${data.content}</span>
+            <div class="comment-time">${data.time}</div>
+        `;
+        commentsList.appendChild(newComment);
+        commentsList.style.display = 'block';
+        commentInput.value = '';
     })
-    .catch(error => {
-        console.error('Lỗi:', error);
-    });
-    */
+    .catch(err => console.error("Post comment error:", err));
 }
 
-// Hàm hỗ trợ lấy CSRF token (nếu dùng Django)
+// Enter để đăng comment
+document.addEventListener('DOMContentLoaded', function() {
+    const commentInputs = document.querySelectorAll('.comment-input');
+    commentInputs.forEach(input => {
+        const button = input.nextElementSibling;
+
+        input.addEventListener('input', function() {
+            if (this.value.trim() !== "") button.classList.add("active");
+            else button.classList.remove("active");
+        });
+
+        input.addEventListener('keypress', function(e) {
+           if (e.key === 'Enter') {
+                e.preventDefault();
+                postComment(button);
+            }
+        });
+    });
+});
+
+//Bình luận ngắn → hiển thị giống input 1 dòng.
+//Bình luận dài → tự động xuống dòng, tự động giãn chiều cao (tối đa 120px).
+document.querySelectorAll(".comment-input").forEach(textarea => {
+    textarea.addEventListener("input", function() {
+        this.style.height = "auto";
+        this.style.height = (this.scrollHeight) + "px";
+    });
+});
+
+// ================= CSRF helper =================
 function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
@@ -160,40 +217,3 @@ function getCookie(name) {
     }
     return cookieValue;
 }
-
-// Thêm sự kiện nhấn Enter để đăng bình luận
-document.addEventListener('DOMContentLoaded', function() {
-    const commentInputs = document.querySelectorAll('.comment-input');
-    commentInputs.forEach(input => {
-        input.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                const postButton = this.nextElementSibling;
-                postComment(postButton);
-            }
-        });
-    });
-});
-    document.addEventListener('DOMContentLoaded', function() {
-    const commentInputs = document.querySelectorAll('.comment-input');
-    commentInputs.forEach(input => {
-        const button = input.nextElementSibling;
-
-        // Khi nhập vào ô comment
-        input.addEventListener('input', function() {
-            if (this.value.trim() !== "") {
-                button.classList.add("active");
-            } else {
-                button.classList.remove("active");
-            }
-        });
-
-        // Nhấn Enter thì cũng đăng
-        input.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                const postButton = this.nextElementSibling;
-                postComment(postButton);
-            }
-        });
-    });
-});
-

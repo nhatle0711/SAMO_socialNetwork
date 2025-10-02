@@ -9,7 +9,7 @@
     <!-- Posts -->
     <div class="posts-container">
         {% for post in posts %}
-        <div class="post">
+        <div class="post" data-post-id="{{ post.id }}">
             <!-- Header -->
             <div class="post-header">
                 <div class="post-user-info">
@@ -24,21 +24,54 @@
                 <button class="options-btn">⋯</button>
             </div>
 
-            <!-- Ảnh post -->
-            {% if post.image %}
-                <div style="position: relative;">
-                    <img src="{{ post.image.url }}" class="post-image" alt="Post image">
-                </div>
-            {% endif %}
+
+            <!-- Media (ảnh/video) -->
+                    {% if post.medias.all %}
+                            <div class="post-media-carousel" data-post-id="{{ post.id }}">
+                                <div class="carousel-track">
+                                    {% for media in post.medias.all %}
+                                    <div class="carousel-item">
+                                        {% if media.media_type == "image" %}
+                                            <img src="{{ media.file.url }}" class="post-image" alt="Post image">
+                                        {% elif media.media_type == "video" %}
+                                            <video  muted playsinline class="post-video">
+                                                <source src="{{ media.file.url }}" type="video/mp4">
+                                            </video>
+                                        {% endif %}
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% if post.medias.count > 1 %}
+                                <button class="carousel-btn prev" onclick="moveSlide({{ post.id }}, -1)">❮</button>
+                                <button class="carousel-btn next" onclick="moveSlide({{ post.id }}, 1)">❯</button>
+
+                                <div class="carousel-dots" id="dots-{{ post.id }}">
+                                    {% for media in post.medias.all %}
+                                        <span class="dot {% if forloop.first %}active{% endif %}"
+                                              onclick="goToSlide({{ post.id }}, {{ forloop.counter0 }})"></span>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+
+
 
             <!-- Action buttons -->
             <div class="post-actions">
                 <button class="action-btn like-btn" onclick="toggleLike(this)">
-                    <span class="heart-icon"><i class="far fa-heart"></i></span>
+                    <span class="heart-icon">
+                        {% if request.user in post.hearts.all %}
+                        <i class="fas fa-heart" style="color: #ed4956"></i>
+                    {% else %}
+                        <i class="far fa-heart"></i>
+                    {% endif %}
+                    </span>
+
                 </button>
-                <button class="action-btn">
-                    <i class="far fa-comment"></i>
-                </button>
+               <button class="action-btn" onclick="openPostModal({{ post.id }})">
+                <i class="far fa-comment"></i>
+               </button>
                 <button class="action-btn">
                     <i class="far fa-paper-plane"></i>
                 </button>
@@ -63,13 +96,19 @@
 
             <!-- Comments section -->
              <div class="comments">
-            <div class="view-comments" onclick="toggleComments(this)">Xem tất cả bình luận</div>
+                 {% if post.comments.count > 0 %}
+                    <div class="view-comments" onclick="openPostModal({{ post.id }})">
+                        Xem tất cả {{ post.comments.count }} bình luận
+                    </div>
+                {% endif %}
+                 <!-- Hoặc khi bấm nút comment -->
             <div class="comments-list" style="display: none;">
-                <!-- Các bình luận sẽ được thêm ở đây bằng JavaScript -->
             </div>
-            <div class="add-comment">
-                <input type="text" placeholder="Thêm bình luận..." class="comment-input">
-                <button class="comment-btn" onclick="postComment(this)">Đăng</button>
+         <div class="add-comment">
+                <textarea placeholder="Thêm bình luận..."
+                          class="comment-input"
+                          data-post-id="{{ post.id }}"></textarea>
+                <button class="comment-btn" data-post-id="{{ post.id }}" onclick="postComment(this)">Đăng</button>
             </div>
         </div>
         </div>
@@ -122,9 +161,8 @@
         </div>
     </div>
 </div>
-
+{% endblock %}
 {% block scripts %}
    <script src="{% static 'js/home.js' %}"></script>
     {% endblock %}
 
-{% endblock %}

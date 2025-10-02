@@ -1,12 +1,40 @@
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import User
-from .models import Profile, Post,Follow
+from .models import Profile, Post,Follow, Media,Comment
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from .forms import PostForm,ProfileForm
 from django.http import JsonResponse
 from django.contrib import messages
+from django.db.models import Q
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+import json
+from django.utils import timezone
 
+def time_since(dt):
+    now = timezone.now()
+    diff = now - dt
+
+    seconds = diff.total_seconds()
+    minutes = seconds // 60
+    hours = seconds // 3600
+    days = diff.days
+
+    if seconds < 60:
+        return "Vừa xong"
+    elif minutes < 60:
+        return f"{int(minutes)} phút trước"
+    elif hours < 24:
+        return f"{int(hours)} giờ trước"
+    elif days < 7:
+        return f"{int(days)} ngày trước"
+    elif days < 30:
+        return f"{int(days // 7)} tuần trước"
+    elif days < 365:
+        return f"{int(days // 30)} tháng trước"
+    else:
+        return f"{int(days // 365)} năm trước"
 # Create your views here.
 
 #region home
@@ -39,14 +67,39 @@ class CustomLogoutView(LogoutView):
     template_name = 'account/logout.html'
 #endregion
 
+def search_users(request):
+    query = request.GET.get("q", "")
+    results = []
+
+    if query:
+        users = User.objects.filter(Q(username__icontains=query))[:10]
+        for u in users:
+            # Lấy avatar từ profile (nếu có)
+            try:
+                avatar_url = u.profile.avatar.url
+            except:
+                avatar_url = "/media/avatars/default.png"
+
+            results.append({
+                "username": u.username,
+                "avatar": avatar_url,
+            })
+
+    return JsonResponse({"results": results})
+
+
 #region profile
 # views.py
 @login_required
 def profile_view(request, username):
     profile_user = get_object_or_404(User, username=username)
-    posts = Post.objects.filter(user=profile_user).order_by('-created_at')
+    # Bài viết user đăng
+    posts = Post.objects.filter(user=profile_user).prefetch_related("medias")
 
-    # Kiểm tra xem current user có đang follow profile_user không
+    # Bài viết user đã lưu
+    saved_posts = Post.objects.filter(saves__user=profile_user).prefetch_related("medias")
+
+
     is_following = False
     if request.user.is_authenticated and request.user != profile_user:
         is_following = Follow.objects.filter(
@@ -57,12 +110,12 @@ def profile_view(request, username):
     context = {
         'profile_user': profile_user,
         'posts': posts,
+        'saved_posts': saved_posts,
         'posts_count': posts.count(),
         'followers_count': profile_user.followers.count(),
         'following_count': profile_user.following.count(),
         'is_following': is_following,
     }
-
     return render(request, 'profile/profile.html', context)
 @login_required
 def edit_profile(request):
@@ -80,18 +133,105 @@ def edit_profile(request):
 #endregion
 
 #region post
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+from django.contrib.auth.decorators import login_required
+from .models import Post, Comment
+
 @login_required
-def create_post(request):
-    if request.method == "POST":
-        form = PostForm(request.POST, request.FILES)  # nhớ có request.FILES để upload ảnh
-        if form.is_valid():
-            post = form.save(commit=False)
-            post.user = request.user  # gán user hiện tại
-            post.save()
-            return redirect("home")  # về trang chủ hoặc trang bạn muốn
+def toggle_like(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+    if request.user in post.hearts.all():
+        post.hearts.remove(request.user)
+        liked = False
     else:
-        form = PostForm()
-    return render(request, "posts/create_post.html", {"form": form})
+        post.hearts.add(request.user)
+        liked = True
+    return JsonResponse({
+        "liked": liked,
+        "likes_count": post.hearts.count()
+    })
+
+@login_required
+def add_comment(request, post_id):
+    if request.method == "POST":
+        post = get_object_or_404(Post, id=post_id)
+        data = json.loads(request.body)
+        text = data.get("text")
+
+        comment = Comment.objects.create(
+            post=post,
+            user=request.user,
+            content=text
+        )
+
+        return JsonResponse({
+            "user": request.user.username,
+            "content": comment.content,
+            "time": comment.created_at.strftime("%H:%M %d/%m/%Y")
+        })
+@login_required
+def post_detail_api(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+    return JsonResponse({
+        "avatar":  post.user.profile.avatar.url,
+        "id": post.id,
+        "user": post.user.username,
+        "content": post.content,
+        "likes": post.hearts.count(),
+       "liked": post.hearts.filter(id=request.user.id).exists(),
+        "medias": [{"url": m.file.url, "type": m.media_type} for m in post.medias.all()],
+        "created_at": time_since(post.created_at),
+
+        "comments": [
+                {
+                    "avatar": c.user.profile.avatar.url,
+                    "user": c.user.username,
+                    "text": c.content,
+                    "time": time_since(c.created_at),
+                }
+            for c in post.comments.all().order_by("-created_at")
+            ]
+    })
+
+@login_required
+@require_POST
+def create_post_api(request):
+    if request.method == "POST":
+        content = request.POST.get("content", "")
+        files = request.FILES.getlist("media")
+
+        if not files:
+            return JsonResponse({"error": "Bạn phải chọn ít nhất một ảnh hoặc video"}, status=400)
+
+        post = Post.objects.create(user=request.user, content=content)
+        media_urls = []
+
+        for f in files:
+            if f.content_type.startswith("image"):
+                media_type = "image"
+            elif f.content_type.startswith("video"):
+                media_type = "video"
+            else:
+                continue
+
+            media = Media.objects.create(post=post, file=f, media_type=media_type)
+            media_urls.append({
+                "url": media.file.url,
+                "type": media_type
+            })
+
+        return JsonResponse({
+            "success": True,
+            "id": post.id,
+            "username": post.user.username,
+            "avatar": getattr(post.user.profile.avatar, "url", ""),
+            "content": post.content,
+            "medias": media_urls,
+            "created_at": post.created_at.strftime("%Y-%m-%d %H:%M"),
+        })
+
+    return JsonResponse({"error": "Invalid request"}, status=400)
 
 #endregion
 
