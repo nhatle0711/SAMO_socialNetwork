@@ -349,7 +349,7 @@ body.pm-modal-open {
 .pm-comment-btn {
     background: none;
     border: none;
-    color: #b3dbff; /* Màu mặc định khi chưa có nội dung */
+    color: #0095f6;/* Màu mặc định khi chưa có nội dung */
     font-weight: 600;
     cursor: pointer;
     padding: 5px;

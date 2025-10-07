@@ -7,10 +7,12 @@ from .forms import PostForm,ProfileForm
 from django.http import JsonResponse
 from django.contrib import messages
 from django.db.models import Q
+from .models import SavePost
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 import json
 from django.utils import timezone
+from allauth.account.views import LoginView, SignupView, LogoutView
 
 def time_since(dt):
     now = timezone.now()
@@ -40,6 +42,7 @@ def time_since(dt):
 #region home
 @login_required
 def home(request):
+
     # lấy list id những người mà user đang follow
     following_ids = Follow.objects.filter(
         follower=request.user
@@ -48,14 +51,15 @@ def home(request):
     suggested_users = User.objects.exclude(id=request.user.id).exclude(id__in=following_ids).exclude(is_superuser=True).exclude(is_staff=True)[:5]
     # lấy post từ những người đó
     posts = Post.objects.filter(user__id__in=following_ids).order_by('-created_at')
-
+    for post in posts:
+        post.is_saved = post.is_saved_by(request.user)
     context = {
         'posts': posts,
         'suggested_users': suggested_users
     }
     return render(request,'account/home.html',context)
 
-from allauth.account.views import LoginView, SignupView, LogoutView
+
 
 class CustomLoginView(LoginView):
     template_name = 'account/login.html'
@@ -151,7 +155,22 @@ def toggle_like(request, post_id):
         "liked": liked,
         "likes_count": post.hearts.count()
     })
+@login_required
+def toggle_save_post(request, post_id):
+    if request.method == "POST":
+        try:
+            post = Post.objects.get(id=post_id)
+        except Post.DoesNotExist:
+            return JsonResponse({"error": "Post not found"}, status=404)
 
+        saved_post, created = SavePost.objects.get_or_create(user=request.user, post=post)
+
+        if not created:
+            saved_post.delete()
+            return JsonResponse({"saved": False})
+        else:
+            return JsonResponse({"saved": True})
+    return JsonResponse({"error": "Invalid request"}, status=400)
 @login_required
 def add_comment(request, post_id):
     if request.method == "POST":
@@ -182,7 +201,7 @@ def post_detail_api(request, post_id):
        "liked": post.hearts.filter(id=request.user.id).exists(),
         "medias": [{"url": m.file.url, "type": m.media_type} for m in post.medias.all()],
         "created_at": time_since(post.created_at),
-
+        "is_saved": post.is_saved_by(request.user),
         "comments": [
                 {
                     "avatar": c.user.profile.avatar.url,

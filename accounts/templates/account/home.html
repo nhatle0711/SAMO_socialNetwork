@@ -75,9 +75,20 @@
                 <button class="action-btn">
                     <i class="far fa-paper-plane"></i>
                 </button>
-                <button class="action-btn save-btn" onclick="toggleSave(this)">
-                    <span class="save-icon"><i class="far fa-bookmark"></i></span>
-                </button>
+               <button class="action-btn save-btn"
+                    data-post-id="{{ post.id }}"
+                    onclick="toggleSave(this)">
+              <span class="save-icon">
+               {% if  post.is_saved %}
+                  <i class="fas fa-bookmark" style="color: gold"></i>
+                {% else %}
+                  <i class="far fa-bookmark"></i>
+                {% endif %}
+
+
+              </span>
+            </button>
+
             </div>
 
             <!-- Stats -->

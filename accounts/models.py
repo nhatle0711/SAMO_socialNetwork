@@ -26,6 +26,11 @@ class Post(models.Model):
     hearts = models.ManyToManyField(User, related_name="hearted_posts", blank=True)
     def __str__(self):
         return f"Post by {self.user.username} at {self.created_at}"
+
+    def is_saved_by(self, user):
+        """Kiểm tra user có lưu post này không"""
+        return SavePost.objects.filter(user=user, post=self).exists()
+
     class Meta:
             ordering = ['-created_at']
 class Media(models.Model):

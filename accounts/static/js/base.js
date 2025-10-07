@@ -87,7 +87,7 @@ window.openPostModal = function(postId) {
 
                 <!-- Actions -->
                 <div class="pm-actions">
-                    <button class="pm-btn pm-like-btn" onclick="toggleLike(${data.id}, this)">
+                    <button class="pm-btn pm-like-btn" onclick="toggleLike(this)">
                         <span class="pm-heart-icon">
                             ${data.liked
                                 ? '<i class="fas fa-heart" style="color:#ed4956"></i>'
@@ -96,8 +96,12 @@ window.openPostModal = function(postId) {
                     </button>
                     <button class="pm-btn"><i class="far fa-comment"></i></button>
                     <button class="pm-btn"><i class="far fa-paper-plane"></i></button>
-                    <button class="pm-btn pm-save-btn" onclick="toggleSave(${data.id}, this)">
-                        <span class="pm-save-icon"><i class="far fa-bookmark"></i></span>
+                    <button class="pm-btn pm-save-btn"  data-post-id="${data.id}"  onclick="toggleSave(this)">
+                        <span class="pm-save-icon"><span class="pm-save-icon">
+              ${data.is_saved
+                  ? '<i class="fas fa-bookmark" style="color: gold"></i>'
+                  : '<i class="far fa-bookmark"></i>'}
+          </span></span>
                     </button>
                 </div>
 
@@ -111,7 +115,7 @@ window.openPostModal = function(postId) {
                 <div class="pm-add-comment">
                     <textarea placeholder="Thêm bình luận..."
                               class="pm-input" id="pm-input-${data.id}"></textarea>
-                    <button class="pm-comment-btn" onclick="postComment(${data.id})">Đăng</button>
+                    <button class="pm-comment-btn" onclick="postComment(this)">Đăng</button>
                 </div>
             </div> <!-- đóng .pm-post -->
             `;

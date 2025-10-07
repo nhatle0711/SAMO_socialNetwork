@@ -182,6 +182,13 @@
 .caption-text {
     margin-left: 4px;
 }
+.save-btn .save-icon i {
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.save-btn .save-icon i.fas {
+  transform: scale(1.2);
+}
 
 .comments {
     padding: 0 16px 16px;

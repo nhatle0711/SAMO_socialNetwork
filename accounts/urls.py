@@ -12,6 +12,7 @@ urlpatterns = [
     path('accounts/logout/', CustomLogoutView.as_view(), name='account_logout'),
     path('create_post/', views.create_post_api, name='create_post_api'),
     path("posts/<int:post_id>/like/", views.toggle_like, name="toggle_like"),
+    path('posts/<int:post_id>/save/', views.toggle_save_post, name='toggle_save_post'),
     path("posts/<int:post_id>/comments/", views.add_comment, name="add_comment"),
     path("post/<int:post_id>/detail/", views.post_detail_api, name="post_detail_api"),
 
